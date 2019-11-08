@@ -25,7 +25,7 @@ while (True):
         for (ox,oy,ol,oa) in  olhosDetectados:
             cv2.rectangle(regiao, (ox,oy), (ox + ol, oy + oa), (0, 255, 0), 2)
 
-        if cv2.waitKey(1): #& 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             if np.average(imagemCinza) > 110:
                 imagemFace = cv2.resize(imagemCinza[y:y + a, x:x + l], (largura,altura))
                 cv2.imwrite("fotos/pessoa." + str(id) + "." + str(amostra) + ".jpg", imagemFace)
