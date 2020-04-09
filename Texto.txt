@@ -1,0 +1,11 @@
+pipeline
+
+algoritmo de detecção em tempo real
+- detecta face
+- captura a face e salva 
+
+algoritmo de processamento e reconhecimento facial
+- carrega a imagem salva do rosto detectado 
+- realiza o alinhamento facial
+- faz o reconhecimento facial
+- faz o output da imagem na tela
