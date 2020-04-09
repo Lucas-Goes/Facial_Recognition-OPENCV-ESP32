@@ -1,13 +1,17 @@
-# program for recognize images saved from esp32 stream script
+# program for recognize images saved from esp32/webcam
 # developed by Lucas De Góes Santos for the Bachelor of Computer Engineering
 import pickle
 import cv2
 import dlib
 import face_recognition
+import imutils
+from imutils.face_utils import FaceAligner
+
 
 args = {
     "encodings": "encodings.pickle",
-    "image": "face_detected/cap.png"
+    "image": "face_detected/cap.png",
+    "shape_predictor": "shape_predictor_68_face_landmarks.dat"
 }
 
 data_frame = pickle.loads(open(args["encodings"], "rb").read())  # load data frames from pickle encodings file
@@ -75,10 +79,24 @@ def fn_recognition(img_to_recognition):
     # loop over the recognized faces
     for ((top, right, bottom, left), name) in zip(boxes, names):
         # draw the predicted face name on the image
-        cv2.rectangle(img_to_recognition, (left, top), (right, bottom), (0, 255, 0), 2)
+        cv2.rectangle(img_to_recognition, (left, top), (right, bottom), (209, 203, 203), 1)
         y = top - 15 if top - 15 > 15 else top + 15
         cv2.putText(img_to_recognition, name, (left, y), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2)
         return img_to_recognition
+
+
+def fn_align_face(face_to_align):
+    predictor = dlib.shape_predictor(args["shape_predictor"])
+    fa = FaceAligner(predictor, desiredFaceWidth=400, desiredFaceHeight=420)
+    face_aligned = imutils.resize(face_to_align, width=800)
+    gray = cv2.cvtColor(face_to_align, cv2.COLOR_BGR2GRAY)
+    boxes = hog_face_detector(gray, 2)
+
+    for box in boxes:
+        face_aligned = fa.align(face_to_align, gray, box)
+        cv2.putText(face_aligned, "", (10, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2)
+        cv2.imwrite("face_detected/align.png", face_aligned)
+    return face_aligned
 
 
 def show_image():
@@ -89,13 +107,16 @@ def show_image():
             print("Could not read input image")
             show_image()
 
-        call_recognition = fn_recognition(image)
-        # show the output image
-        print("[INFO] Finished ...")
-        cv2.imshow("Image_Recog", call_recognition)
-        cv2.waitKey(2000)
+        call_align = fn_align_face(image)
+
+        cv2.imshow("Original Image", image)
+        cv2.imshow("Aligned Image", call_align)
+        print("[INFO] Complete alignment ...")
+        call_recognition = fn_recognition(call_align)
+        print("[INFO] Complete recognition ...")
+        cv2.imshow("Recognized image", call_recognition)
+        cv2.waitKey(100000)
         cv2.destroyAllWindows()
-        print("stream on")
 
 
 show_image()
