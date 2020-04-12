@@ -6,6 +6,7 @@ import dlib
 import face_recognition
 import imutils
 from imutils.face_utils import FaceAligner
+import _thread as tr
 
 
 args = {
@@ -40,7 +41,7 @@ def face_locations(img, number_of_times_to_upsample):
             _raw_face_locations(img, number_of_times_to_upsample)]
 
 
-def fn_recognition(img_to_recognition):
+def fn_recognition(img_to_recognition, n):
     print("[INFO] recognizing faces...")
 
     boxes = face_locations(img_to_recognition, 1)
@@ -76,47 +77,92 @@ def fn_recognition(img_to_recognition):
         # update the list of names
         names.append(name)
 
+
     # loop over the recognized faces
     for ((top, right, bottom, left), name) in zip(boxes, names):
         # draw the predicted face name on the image
-        cv2.rectangle(img_to_recognition, (left, top), (right, bottom), (209, 203, 203), 1)
+        cv2.rectangle(img_to_recognition, (left, top), (right, bottom), (158, 173, 62), 1)
+        cv2.rectangle(img_to_recognition, (left, top), (left+200, top-25), (158, 173, 62), -1)
         y = top - 15 if top - 15 > 15 else top + 15
-        cv2.putText(img_to_recognition, name, (left, y), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2)
-        return img_to_recognition
+        cv2.putText(img_to_recognition, name, (left, top-5), cv2.FONT_HERSHEY_DUPLEX, 0.8, (0, 0, 0), 1)
+        cv2.imwrite("face_detected/recognized" + str(n) + ".png", img_to_recognition)
+        print("Reconhecido")
+        recognized_image = "recognized" + str(n) + ".png"
+        return recognized_image
 
 
 def fn_align_face(face_to_align):
     predictor = dlib.shape_predictor(args["shape_predictor"])
     fa = FaceAligner(predictor, desiredFaceWidth=400, desiredFaceHeight=420)
-    face_aligned = imutils.resize(face_to_align, width=800)
+    #face_aligned = imutils.resize(face_to_align, width=800)
     gray = cv2.cvtColor(face_to_align, cv2.COLOR_BGR2GRAY)
     boxes = hog_face_detector(gray, 2)
 
+    faces_name = []
+    faces = 0
     for box in boxes:
+        faces += 1
         face_aligned = fa.align(face_to_align, gray, box)
-        cv2.putText(face_aligned, "", (10, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2)
-        cv2.imwrite("face_detected/align.png", face_aligned)
-    return face_aligned
+        #cv2.putText(face_aligned, "", (10, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2)
+        cv2.imwrite("face_detected/align" + str(faces) + ".png", face_aligned)
+        faces_name.append("align" + str(faces) + ".png")
+    return faces_name
+
+
+def fn_detect_face(img_to_detect):
+    gray = cv2.cvtColor(img_to_detect, cv2.COLOR_BGR2GRAY)
+    boxes = hog_face_detector(gray, 2)
+
+    count_faces = 1
+    for face in boxes:
+        x = face.left()
+        y = face.top()
+        w = face.right() - x
+        h = face.bottom() - y
+        cv2.rectangle(img_to_detect, (x, y), (x + w, y + h), (158, 173, 62), 1)  # blue, green, red
+        cv2.rectangle(img_to_detect, (x, y), (x + 70, y - 14), (158, 173, 62), -1)  # blue, green, red
+        cv2.putText(img_to_detect, "FACE: " + str(count_faces), (x, y - 2), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 100), 1)
+        count_faces += 1
+    cv2.putText(img_to_detect, "Faces detected: ", (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+    cv2.putText(img_to_detect, str(count_faces), (145, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+    cv2.imshow("Faces detected", img_to_detect)
+    cv2.waitKey(3000)
 
 
 def show_image():
     while True:
-        image = cv2.imread(args["image"])
+        try:
+            image = cv2.imread(args["image"])
+            image2 = cv2.imread(args["image"])
 
-        if image is None:
-            print("Could not read input image")
-            show_image()
+            if image is None:
+                print("Could not read input image")
+                show_image()
 
-        call_align = fn_align_face(image)
+            fn_detect_face(image2)
 
-        cv2.imshow("Original Image", image)
-        cv2.imshow("Aligned Image", call_align)
-        print("[INFO] Complete alignment ...")
-        call_recognition = fn_recognition(call_align)
-        print("[INFO] Complete recognition ...")
-        cv2.imshow("Recognized image", call_recognition)
-        cv2.waitKey(100000)
-        cv2.destroyAllWindows()
+            call_align = fn_align_face(image)
+            print(call_align)
 
+            for filenames in call_align:
+                print(filenames)
+                n = filenames[5:-4]
+                path = {"image": "face_detected/" + str(filenames)}
+
+                face_aligned_saved = cv2.imread(path["image"])
+
+                cv2.imshow("Aligned Image", face_aligned_saved)
+
+                call_recognition = fn_recognition(face_aligned_saved, n)
+
+                path_recognized = {"image_recognized": "face_detected/" + str(call_recognition)}
+
+                face_recognized_saved = cv2.imread(path_recognized["image_recognized"])
+
+                cv2.imshow("Recognized Image", face_recognized_saved)
+
+                cv2.waitKey(2000)
+        except:
+            continue
 
 show_image()

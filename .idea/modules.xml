@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/TCC_CV_IOT.iml" filepath="$PROJECT_DIR$/.idea/TCC_CV_IOT.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/facial_recognition_with_esp32.iml" filepath="$PROJECT_DIR$/.idea/facial_recognition_with_esp32.iml" />
     </modules>
   </component>
 </project>
