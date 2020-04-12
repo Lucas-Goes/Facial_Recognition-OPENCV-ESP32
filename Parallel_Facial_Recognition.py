@@ -139,7 +139,7 @@ def show_image():
                 print("Could not read input image")
                 show_image()
 
-            fn_detect_face(image2)
+            #fn_detect_face(image2)
 
             call_align = fn_align_face(image)
             print(call_align)
@@ -160,6 +160,9 @@ def show_image():
                 face_recognized_saved = cv2.imread(path_recognized["image_recognized"])
 
                 cv2.imshow("Recognized Image", face_recognized_saved)
+
+                cv2.moveWindow("Recognized Image", 700, 100)
+                cv2.moveWindow("Aligned Image", 1110, 100)
 
                 cv2.waitKey(2000)
         except:

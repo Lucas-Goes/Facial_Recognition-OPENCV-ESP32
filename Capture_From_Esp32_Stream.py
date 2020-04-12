@@ -34,6 +34,7 @@ while True:
             # Display the resulting frame
             print("stream on")
             cv2.imshow('frame', gray)
+            cv2.moveWindow("frame", 150, 100)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
     except:  # important block try except
